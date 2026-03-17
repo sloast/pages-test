@@ -10,8 +10,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&display=swap"
     rel="stylesheet">
   <title>sloa.st</title>
-  <script type="module" crossorigin src="/pages-test/assets/index-Bbvxw6G5.js"></script>
-  <link rel="stylesheet" crossorigin href="/pages-test/assets/index-D2K_XUBx.css">
+  <script type="module" crossorigin src="/pages-test/assets/index-FotrL5Nv.js"></script>
+  <link rel="stylesheet" crossorigin href="/pages-test/assets/index-DZAT7MYT.css">
 </head>
 
 <body class="font-mono bg-gray-900 text-gray-100 transition-colors duration-300" x-data="{ currentPage: 'home' }">
@@ -74,7 +74,8 @@
     <h1 class="pointer-events-none z-10 rounded bg-gray-800 p-4 text-5xl">
       sloast.dev
     </h1>
-    <canvas class="absolute inset-0" x-data x-init="setupShaderCanvas($el, 'shader/perlin.glsl')">
+    <canvas class="absolute inset-0" x-show="currentPage === 'home'" x-data
+      x-init="setupShaderCanvas($el, 'shader/perlin.glsl')">
       shader failed to load :/
     </canvas>
   </div>
