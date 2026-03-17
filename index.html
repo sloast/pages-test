@@ -4,11 +4,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
   <link rel="icon" type="image/svg+xml" href="/static/slogo.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&display=swap"
     rel="stylesheet">
+  <link rel="stylesheet" href="/src/style.css">
   <title>sloa.st</title>
 </head>
 
@@ -29,11 +31,10 @@
 
     <!-- Navigation -->
     <nav class="flex flex-row flex-wrap justify-end gap-4">
-      <button class="btn" @click="currentPage = 'home'" :class="currentPage === 'home' ? 'text-blue-400' : ''"
-        class="hover:text-blue-300 transition">home</button>
+      <button class="btn" @click="currentPage = 'home'" :class="currentPage === 'home' ? 'current' : ''">home</button>
 
-      <button class="btn" @click="currentPage = 'about'" :class="currentPage === 'about' ? 'text-blue-400' : ''"
-        class="hover:text-blue-300 transition">about</button>
+      <button class="btn" @click="currentPage = 'about'"
+        :class="currentPage === 'about' ? 'current' : ''">about</button>
     </nav>
 
     <!-- "Made by human" text -->
@@ -68,22 +69,23 @@
   </header>
 
 
-  <div class="relative z-0 flex min-h-72 items-center justify-center overflow-clip">
+  <div x-show="currentPage === 'home'" class="relative z-0 flex min-h-72 items-center justify-center overflow-clip">
     <h1 class="pointer-events-none z-10 rounded bg-gray-800 p-4 text-5xl">
       sloast.dev
     </h1>
-    <canvas class="absolute inset-0" x-data x-init="setupShaderCanvas($el, 'shader/perlin.glsl')">
-      <!-- fallback content -->
+    <canvas x-show="currentPage === 'home'" class="absolute inset-0" x-data
+      x-init="setupShaderCanvas($el, 'shader/perlin.glsl')">
+      shader failed to load :/
     </canvas>
   </div>
 
   <main class="p-6">
-    <section x-show="currentPage === 'home'" x-transition>
+    <section x-show="currentPage === 'home'">
       <h1 class="text-3xl font-bold mb-4">sloast.dev</h1>
       <p>This is the home page content.</p>
     </section>
 
-    <section x-show="currentPage === 'about'" x-transition>
+    <section x-show="currentPage === 'about'">
       <h1 class="text-3xl font-bold mb-4">About</h1>
       <p>i exist. <a href="https://en.wikipedia.org/wiki/Cogito,_ergo_sum">more info</a></p>
     </section>

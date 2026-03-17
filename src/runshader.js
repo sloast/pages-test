@@ -1,24 +1,61 @@
 export default function setupShaderCanvas(canvas, location) {
     const gl = canvas.getContext("webgl2");
+    if (!gl) throw new Error("WebGL2 not supported");
 
-    // if (!gl) {
-    //     alert("WebGL2 not supported");
-    // }
+    // --- create textures and FBOs ---
+    let tex1, tex2, fb1, fb2;
 
-    // Resize canvas
+    // temporary FBO for copying old content
+    const tempFBO = gl.createFramebuffer();
+
     function resize() {
-        const parent = canvas.parentElement; // get parent element
+        const parent = canvas.parentElement;
         const width = parent.clientWidth;
         const height = parent.clientHeight;
 
+        if (canvas.width === width && canvas.height === height) return;
+
+        // keep old textures
+        const oldTex1 = tex1;
+        const oldTex2 = tex2;
+
         canvas.width = width;
         canvas.height = height;
+        gl.viewport(0, 0, width, height);
 
-        gl.viewport(0, 0, canvas.width, canvas.height);
+        // create new textures & FBOs
+        tex1 = createTexture(width, height);
+        tex2 = createTexture(width, height);
+        fb1 = createFBO(tex1);
+        fb2 = createFBO(tex2);
+
+        // copy oldTex1 into tex1
+        if (oldTex1) {
+            gl.bindFramebuffer(gl.READ_FRAMEBUFFER, createFBO(oldTex1));
+            gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, fb1);
+            gl.blitFramebuffer(
+                0, 0, canvas.width, canvas.height,
+                0, 0, canvas.width, canvas.height,
+                gl.COLOR_BUFFER_BIT, gl.LINEAR
+            );
+        }
+
+        // same for oldTex2 into tex2
+        if (oldTex2) {
+            gl.bindFramebuffer(gl.READ_FRAMEBUFFER, createFBO(oldTex2));
+            gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, fb2);
+            gl.blitFramebuffer(
+                0, 0, canvas.width, canvas.height,
+                0, 0, canvas.width, canvas.height,
+                gl.COLOR_BUFFER_BIT, gl.LINEAR
+            );
+        }
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     }
-    window.addEventListener("resize", resize);
-    resize();
 
+
+    // --- load shaders & start render ---
     async function loadShader(url) {
         return fetch(url).then(r => r.text());
     }
@@ -27,7 +64,6 @@ export default function setupShaderCanvas(canvas, location) {
         const sh = gl.createShader(type);
         gl.shaderSource(sh, source);
         gl.compileShader(sh);
-
         if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) {
             console.error(gl.getShaderInfoLog(sh));
             throw new Error("Shader compilation error");
@@ -86,39 +122,24 @@ export default function setupShaderCanvas(canvas, location) {
         // Set sampler to texture unit 0
         gl.uniform1i(uBuffer0, 0);
 
-        // --- CREATE TWO TEXTURES & TWO FBOS (ping-pong) ---
-        let tex1 = createTexture(canvas.width, canvas.height);
-        let tex2 = createTexture(canvas.width, canvas.height);
-        let fb1 = createFBO(tex1);
-        let fb2 = createFBO(tex2);
-
-        // Mouse tracking
+        // mouse
         let mouse = [0, 0, 0];
-
-        canvas.addEventListener("mousemove", e => {
-            const r = canvas.getBoundingClientRect();
-            mouse[0] = e.clientX - r.left;               // X
-            mouse[1] = r.height - (e.clientY - r.top);   // Y
+        window.addEventListener("mousemove", e => {
+            const rect = canvas.getBoundingClientRect();
+            mouse[0] = e.clientX - rect.left;
+            mouse[1] = rect.height - (e.clientY - rect.top);
         });
-
-        canvas.addEventListener("mousedown", () => {
-            mouse[2] = 1.0;
-        });
-        canvas.addEventListener("mouseup", () => {
-            mouse[2] = 0.0;
-        });
-        canvas.addEventListener("mouseleave", () => {
-            mouse[2] = 0.0;
-        });
-
+        canvas.addEventListener("mousedown", () => mouse[2] = 1.0);
+        window.addEventListener("mouseup", () => mouse[2] = 0.0);
+        window.addEventListener("mouseleave", () => mouse[2] = 0.0);
 
         let startTime = performance.now();
+        let animationFrameId = null;
 
         function render() {
             const t = (performance.now() - startTime) / 1000;
 
             gl.bindFramebuffer(gl.FRAMEBUFFER, fb1);
-
             gl.viewport(0, 0, canvas.width, canvas.height);
             gl.uniform2f(uResolution, canvas.width, canvas.height);
             gl.uniform1f(uTime, t);
@@ -138,17 +159,32 @@ export default function setupShaderCanvas(canvas, location) {
             [tex1, tex2] = [tex2, tex1];
             [fb1, fb2] = [fb2, fb1];
 
-            requestAnimationFrame(render);
+            animationFrameId = requestAnimationFrame(render);
         }
 
-        render();
+        function pause() {
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
+        }
+
+        const observer = new MutationObserver(() => {
+            if (canvas.offsetParent === null) pause();
+            else if (!animationFrameId) animationFrameId = requestAnimationFrame(render);
+        });
+        observer.observe(canvas, { attributes: true, attributeFilter: ["style", "class"] });
+
+        // start initially if visible
+        if (canvas.offsetParent !== null) animationFrameId = requestAnimationFrame(render);
     }
 
     Promise.all([
         loadShader("shader/vertex.glsl"),
         loadShader(location)
-    ]).then(([vsSource, fsSource]) => {
-        start(vsSource, fsSource);
+    ]).then(([vs, fs]) => {
+        start(vs, fs);
+        window.addEventListener("resize", resize);
+        resize();
     });
-
 }
