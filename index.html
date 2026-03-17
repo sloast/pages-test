@@ -1,55 +1,97 @@
 <!DOCTYPE html>
-<html lang="en" x-data="{ dark: false }" :class="{ 'dark': dark }">
+<html lang="en">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/svg+xml" href="/pages-test/static/slogo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&display=swap"
+    rel="stylesheet">
   <title>Tiny Alpine + Tailwind Dark Mode</title>
-  <script type="module" crossorigin src="/pages-test/assets/index-BRkJ0KAZ.js"></script>
-  <link rel="stylesheet" crossorigin href="/pages-test/assets/index-BD3C-nEU.css">
+  <script type="module" crossorigin src="/pages-test/assets/index-Bbvxw6G5.js"></script>
+  <link rel="stylesheet" crossorigin href="/pages-test/assets/index-D2K_XUBx.css">
 </head>
 
-<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-6 transition-colors duration-300">
-
-  <!-- Dark Mode Toggle -->
-  <div class="max-w-sm mx-auto mb-6 flex justify-between items-center p-4 bg-white dark:bg-gray-800 rounded shadow">
-    <h1 class="text-xl font-bold">Dark Mode Example</h1>
-    <button @click="dark = !dark" class="px-4 py-2 bg-blue-500 text-white rounded">
-      Toggle
-    </button>
-  </div>
-
-  <!-- Counter Example -->
-  <div x-data="counterComponent()" class="max-w-sm mx-auto p-4 bg-white dark:bg-gray-800 rounded shadow space-y-4">
-    <h2 class="text-lg font-bold">Counter</h2>
-    <p>Current count: <span x-text="count"></span></p>
-    <div class="flex space-x-2">
-      <button @click="increment()" class="px-4 py-2 bg-green-500 text-white rounded">+</button>
-      <button @click="decrement()" class="px-4 py-2 bg-red-500 text-white rounded">-</button>
+<body class="font-mono bg-gray-900 text-gray-100 transition-colors duration-300" x-data="{ currentPage: 'home' }">
+  <header x-data="headerState"
+    class="sticky top-0 z-10 flex items-center justify-between gap-4 border-b-2 border-b-gray-500 bg-gray-800 p-4">
+    <!-- Logo -->
+    <div class="flex min-w-[3em] grow basis-0">
+      <a href="/">
+        <template x-if="wide">
+          <img src="/pages-test/static/slogo_full.svg" class="logo" alt="Sloast Logo" />
+        </template>
+        <template x-if="!wide">
+          <img src="/pages-test/static/slogo.svg" class="logo" alt="Sloast Logo" />
+        </template>
+      </a>
     </div>
-  </div>
 
-  <!-- Toggle Example -->
-  <div x-data="{ open: false }" class="mt-6 max-w-sm mx-auto p-4 bg-white dark:bg-gray-800 rounded shadow">
-    <button @click="open = !open" class="px-4 py-2 bg-indigo-500 text-white rounded">
-      Toggle Details
-    </button>
-    <div x-show="open" x-transition class="mt-2 p-2 bg-gray-100 dark:bg-gray-700 rounded">
-      <p>This content is hidden until you click the toggle button!</p>
-    </div>
-  </div>
+    <!-- Navigation -->
+    <nav class="flex flex-row flex-wrap justify-end gap-4">
+      <button class="btn" @click="currentPage = 'home'" :class="currentPage === 'home' ? 'text-blue-400' : ''"
+        class="hover:text-blue-300 transition">home</button>
 
+      <button class="btn" @click="currentPage = 'about'" :class="currentPage === 'about' ? 'text-blue-400' : ''"
+        class="hover:text-blue-300 transition">about</button>
+    </nav>
 
-  <script>
-    // Alpine counter module
-    function counterComponent() {
-      return {
-        count: 0,
-        increment() { this.count++ },
-        decrement() { this.count-- },
+    <!-- "Made by human" text -->
+    <p x-show="wide" class="min-w-[8em] grow basis-0 text-right">&nbsp;[ made by human ]&nbsp;</p>
+
+    <script>
+      const headerState = () => ({
+        innerWidth: window.innerWidth,
+        rem: 16,
+        get wide() {
+          return this.innerWidth > 50 * this.rem;
+        },
+        init() {
+          // read root font size
+          this.rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
+
+          // update innerWidth on resize
+          window.addEventListener('resize', () => {
+            this.innerWidth = window.innerWidth;
+          });
+        }
+      });
+    </script>
+
+    <style>
+      .logo {
+        height: 3em;
+        filter: drop-shadow(0 0 1.5em #00e436);
+        aspect-ratio: auto;
       }
-    }
-  </script>
+    </style>
+  </header>
+
+
+  <div class="relative z-0 flex min-h-72 items-center justify-center overflow-clip">
+    <h1 class="pointer-events-none z-10 rounded bg-gray-800 p-4 text-5xl">
+      sloast.dev
+    </h1>
+    <canvas class="absolute inset-0" x-data x-init="setupShaderCanvas($el, 'shader/perlin.glsl')">
+      shader failed to load :/
+    </canvas>
+  </div>
+
+  <main class="p-6">
+    <section x-show="currentPage === 'home'" x-transition>
+      <h1 class="text-3xl font-bold mb-4">sloast.dev</h1>
+      <p>This is the home page content.</p>
+    </section>
+
+    <section x-show="currentPage === 'about'" x-transition>
+      <h1 class="text-3xl font-bold mb-4">About</h1>
+      <p>i exist. <a href="https://en.wikipedia.org/wiki/Cogito,_ergo_sum">more info</a></p>
+    </section>
+  </main>
+
+
 </body>
 
 </html>
