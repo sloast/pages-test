@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/svg+xml" href="/static/slogo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&display=swap"
+    rel="stylesheet">
+  <title>sloa.st</title>
+</head>
+
+<body class="font-mono bg-gray-900 text-gray-100 transition-colors duration-300" x-data="{ currentPage: 'home' }">
+  <header x-data="headerState"
+    class="sticky top-0 z-10 flex items-center justify-between gap-4 border-b-2 border-b-gray-500 bg-gray-800 p-4">
+    <!-- Logo -->
+    <div class="flex min-w-[3em] grow basis-0">
+      <a href="/">
+        <template x-if="wide">
+          <img src="/static/slogo_full.svg" class="logo" alt="Sloast Logo" />
+        </template>
+        <template x-if="!wide">
+          <img src="/static/slogo.svg" class="logo" alt="Sloast Logo" />
+        </template>
+      </a>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="flex flex-row flex-wrap justify-end gap-4">
+      <button class="btn" @click="currentPage = 'home'" :class="currentPage === 'home' ? 'text-blue-400' : ''"
+        class="hover:text-blue-300 transition">home</button>
+
+      <button class="btn" @click="currentPage = 'about'" :class="currentPage === 'about' ? 'text-blue-400' : ''"
+        class="hover:text-blue-300 transition">about</button>
+    </nav>
+
+    <!-- "Made by human" text -->
+    <p x-show="wide" class="min-w-[8em] grow basis-0 text-right">&nbsp;[ made by human ]&nbsp;</p>
+
+    <script>
+      const headerState = () => ({
+        innerWidth: window.innerWidth,
+        rem: 16,
+        get wide() {
+          return this.innerWidth > 50 * this.rem;
+        },
+        init() {
+          // read root font size
+          this.rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
+
+          // update innerWidth on resize
+          window.addEventListener('resize', () => {
+            this.innerWidth = window.innerWidth;
+          });
+        }
+      });
+    </script>
+
+    <style>
+      .logo {
+        height: 3em;
+        filter: drop-shadow(0 0 1.5em #00e436);
+        aspect-ratio: auto;
+      }
+    </style>
+  </header>
+
+
+  <div class="relative z-0 flex min-h-72 items-center justify-center overflow-clip">
+    <h1 class="pointer-events-none z-10 rounded bg-gray-800 p-4 text-5xl">
+      sloast.dev
+    </h1>
+    <canvas class="absolute inset-0" x-data x-init="setupShaderCanvas($el, 'shader/perlin.glsl')">
+      <!-- fallback content -->
+    </canvas>
+  </div>
+
+  <main class="p-6">
+    <section x-show="currentPage === 'home'" x-transition>
+      <h1 class="text-3xl font-bold mb-4">sloast.dev</h1>
+      <p>This is the home page content.</p>
+    </section>
+
+    <section x-show="currentPage === 'about'" x-transition>
+      <h1 class="text-3xl font-bold mb-4">About</h1>
+      <p>i exist. <a href="https://en.wikipedia.org/wiki/Cogito,_ergo_sum">more info</a></p>
+    </section>
+  </main>
+
+  <script type="module" src="/src/main.js"></script>
+
+</body>
+
+</html>
