@@ -133,11 +133,15 @@ export default function setupShaderCanvas(canvas, location) {
         window.addEventListener("mouseup", () => mouse[2] = 0.0);
         window.addEventListener("mouseleave", () => mouse[2] = 0.0);
 
-        let startTime = performance.now();
         let animationFrameId = null;
+        let lastTime = performance.now();
+        let t = 0;
 
         function render() {
-            const t = (performance.now() - startTime) / 1000;
+            const now = performance.now();
+            const delta = Math.min(now - (lastTime ?? now), 50) / 1000;
+            t += delta;
+            lastTime = now;
 
             gl.bindFramebuffer(gl.FRAMEBUFFER, fb1);
             gl.viewport(0, 0, canvas.width, canvas.height);
@@ -166,6 +170,7 @@ export default function setupShaderCanvas(canvas, location) {
             if (animationFrameId) {
                 cancelAnimationFrame(animationFrameId);
                 animationFrameId = null;
+                lastTime = null;
             }
         }
 
