@@ -32,19 +32,23 @@ struct cont {
     vec3 color;
 };
 
-cont[] colors = cont[](cont(0.8f, vec3(1, 0, .5f)), cont(0.6f, vec3(1, 0, 0)), cont(0.4f, vec3(1, .5f, 0)), cont(0.2f, vec3(1, 1, 0)), cont(0.0f, vec3(.2f, 1, 0)), cont(-0.2f, vec3(0, 1, .5f)), cont(-0.4f, vec3(0, 1, 1)), cont(-0.6f, vec3(0, .5f, 1)), cont(-0.8f, vec3(.5f, 0, 1)));
+cont[] colors = cont[](
+    cont(-0.8f, vec3(.5f, 0, 1)),
+    cont(-0.6f, vec3(0, .5f, 1)),
+    cont(-0.4f, vec3(0, 1, 1)),
+    cont(-0.2f, vec3(0, 1, .5f)),
+    cont(0.0f, vec3(.2f, 1, 0)),
+    cont(0.2f, vec3(1, 1, 0)),
+    cont(0.4f, vec3(1, .5f, 0)),
+    cont(0.6f, vec3(1, 0, 0)),
+    cont(0.8f, vec3(1, 0, .5f))
+);
 
 int numcolors = 9;
 
 float sm(float a, float b, float x) {
     x = smoothstep(0.f, 1.f, x);
-    if(a < b) {
-        return mix(a, b, x);
-    } else if(a > b) {
-        return mix(b, a, 1.0f - x);
-    } else {
-        return a;
-    }
+    return mix(a, b, x);
 }
 
 float perlin(vec3 p) {
@@ -55,15 +59,6 @@ float perlin(vec3 p) {
     #define f(v) dot(p-(v),grad(v))
     #define g(a,b) f(p0+vec3(0.,a,b)),f(p0+vec3(1.,a,b))
     return sm(sm(sm(g(0.f, 0.f), s.x), sm(g(1.f, 0.f), s.x), s.y), sm(sm(g(0.f, 1.f), s.x), sm(g(1.f, 1.f), s.x), s.y), s.z);
-}
-
-bool approx(float a, float b, float interval) {
-    float diff = a - b;
-    return abs(diff) < interval;
-}
-
-bool approx(float a, float b) {
-    return approx(a, b, 0.02f);
 }
 
 void mainImage(in vec2 fragCoord) {
@@ -94,11 +89,9 @@ void mainImage(in vec2 fragCoord) {
     vec3 col = texture(buffer0, uv).xyz * 0.95f;
 
     // get contour lines
-    for(int i = 0; i < numcolors; i++) {
-        if(approx(value, colors[i].height, 0.02f * scaling)) {
-            col = colors[i].color;
-        }
-    }
+    int inx = int(round(value * 5.f + 4.f));
+    float dist = abs(value - colors[inx].height);
+    col = max(col, colors[inx].color * (1.f - pow(dist*30.f, 5.f)));
 
     // add cool mouse fade effect
     if(iMouse.z > 0.0f) {
